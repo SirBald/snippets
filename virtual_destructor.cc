@@ -1,16 +1,19 @@
-#include <iostream>
 #include <memory>
+
+#include "utility_print-inl.h"
+#include "utility_test_executor-inl.h"
+
 
 namespace {
 
   class Base {
   public:
     Base() {
-      std::cerr << "Base()" << std::endl;
+      utility::print("Base()");
     }
 
     virtual ~Base() {
-      std::cerr << "~Base()" << std::endl;
+      utility::print("~Base()");
     }
   };
 
@@ -18,11 +21,11 @@ namespace {
   class BaseNoVirtualDtor {
   public:
     BaseNoVirtualDtor() {
-      std::cerr << "BaseNoVirtualDtor()" << std::endl;
+      utility::print("BaseNoVirtualDtor()");
     }
 
     ~BaseNoVirtualDtor() {
-      std::cerr << "~BaseNoVirtualDtor()" << std::endl;
+      utility::print("~BaseNoVirtualDtor()");
     }
   };
 
@@ -30,11 +33,11 @@ namespace {
   class DerivedFromBase : public Base {
   public:
     DerivedFromBase() {
-      std::cerr << "DerivedFromBase()" << std::endl;
+      utility::print("DerivedFromBase()");
     }
 
     virtual ~DerivedFromBase() {
-      std::cerr << "~DerivedFromBase()" << std::endl;
+      utility::print("~DerivedFromBase()");
     }
   };
 
@@ -42,11 +45,11 @@ namespace {
   class DerivedFromBaseNoVirtualDtor : public BaseNoVirtualDtor {
   public:
     DerivedFromBaseNoVirtualDtor() {
-      std::cerr << "DerivedFromBaseNoVirtualDtor()" << std::endl;
+      utility::print("DerivedFromBaseNoVirtualDtor()");
     }
 
     virtual ~DerivedFromBaseNoVirtualDtor() {
-      std::cerr << "~DerivedFromBaseNoVirtualDtor()" << std::endl;
+      utility::print("~DerivedFromBaseNoVirtualDtor()");
     }
   };
 
@@ -54,25 +57,21 @@ namespace {
 
 
 void memoryLeakTest() {
-  std::cerr << "Via Derived instance:" << std::endl;
-  {
+  utility::runCase("CASE 1: Via Derived instance:", []() {
     DerivedFromBaseNoVirtualDtor derived;
-  }
+  });
 
-  std::cerr << std::endl << "Via Derived pointer:" << std::endl;
-  {
+  utility::runCase("CASE 2: Via Derived pointer:", []() {
     std::unique_ptr<DerivedFromBaseNoVirtualDtor> derived{new DerivedFromBaseNoVirtualDtor{}};
-  }
+  });
 
-  std::cerr << std::endl << "Via Base pointer (MEMORY LEAK IS DETECTED):" << std::endl;
-  {
+  utility::runCase("CASE 3: Via Base pointer (MEMORY LEAK IS DETECTED):", []() {
     std::unique_ptr<BaseNoVirtualDtor> BaseNoVirtualDtor{new DerivedFromBaseNoVirtualDtor{}};
-  }
+  });
 
-  std::cerr << std::endl << "Via Base pointer (with virtual dtor everything is fine):" << std::endl;
-  {
+  utility::runCase("CASE 4: Via Base pointer (with virtual dtor everything is fine):", []() {
     std::unique_ptr<Base> Base{new DerivedFromBase{}};
-  }
+  });
 }
 
 
